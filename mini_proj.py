@@ -1,9 +1,12 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from gensim.summarization.summarizer import summarize
-from transformers import pipeline
+from transformers import pipeline 
 
 app = FastAPI()
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # '/analyze_news' 엔드포인트 정의
 @app.post("/analyze_news")
@@ -17,7 +20,7 @@ async def analyze_news(news_data: dict):
         news_article = news_data["news_article"]
         
         # 기사 요약
-        summarized_article = summarize(news_article)
+        summarized_article = summarize(news_article, word_count= 50)
         
         # 감정 분석
         classifier = pipeline("sentiment-analysis", model="snunlp/KR-FinBert-SC")
@@ -53,7 +56,6 @@ async def read_root():
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
-            display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
@@ -68,7 +70,7 @@ async def read_root():
             width: 685px;
             height: 650px;
             background-color: #ffffff;
-            padding: 20px;
+            padding: 50px 0px;
         }
 
         .result {
@@ -138,17 +140,19 @@ async def read_root():
     </style>
 </head>
 <body>
+    <div class="header" style="background-color: #ffffff; height: 60px;">
+    <h2 style="text-align: center;"><img src="/static/img/logo.png" alt="90'z 로고" style="max-width: 120px;"></h2>
+    </div>
+    <div class="container_box" style="display: flex; justify-content: center; margin: 100px;">
     <div class="container">
-
         <div class="news-input">
-            <h2 style="text-align: center;"><img src="img/logo.png" alt="90'z 로고" style="max-width: 120px;"></h2>
-            <textarea id="news-article" placeholder="분석하고자 하는 기사 내용을 입력하세요." style="width: 100%; margin-bottom: 20px; height: 477px; text-align: center; resize: none;"></textarea>
+            <textarea id="news-article" placeholder="분석하고자 하는 기사 내용을 입력하세요." style="width: 85%; margin: 20px; height: 477px; text-align: center; resize: none;"></textarea>
             <div style="text-align: center;">
             <button class="btn" onclick="analyzeNews()">결과 확인</button>
             </div>
         </div>
         <div class="result">
-            <div class="result_box" style="margin-top: 28px;">
+            <div class="result_box" style="margin-top:45px">
             <div class="title">
             <h2>분석 결과</h2>
           </div>
@@ -159,6 +163,7 @@ async def read_root():
             <div class="title">
                 <h2>결과</h2>
             <div class="result-text" id="result-text" style="height: 125px;"></div>
+        </div>
         </div>
         </div>
     </div>
