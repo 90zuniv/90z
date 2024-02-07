@@ -1,72 +1,214 @@
-from gensim.summarization.summarizer import summarize, summarize_corpus
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
+from gensim.summarization.summarizer import summarize
 from transformers import pipeline
-from fastapi import FastAPI
-text = """[디지털데일리 문대찬기자] ‘PUBG: 배틀그라운드(이하 배틀그라운드)’로 국내외서 배틀로얄 장르 붐을 일으킨 크래프톤은 최근 국내 게임사로선 생소한 도전을 시작했다. ‘심즈’ 시리즈로 대표되는 PC 인생 시뮬레이션 게임 개발에 돌입한 것이다.
 
-지난해 11월 ‘지스타(G-STAR)’를 통해 깜짝 공개된 ‘인조이’는 언리얼엔진5를 기반한 고품질 그래픽과 자유로운 캐릭터 커스터마이징, 몰입도 높은 콘텐츠로 기대 이상의 호평을 받았다. 높은 자율성이나 자연스러운 캐릭터 모션 등 심즈보다 게임성에서 진일보한 부분도 확인돼 기대를 한 몸에 받는 프로젝트로 거듭났다.
+app = FastAPI()
 
-6일 오후 경기도 성남시 분당구 크래프톤 오피스에서 만난 채종득 인조이 테크셀 셀장은 “그간 게임업계가 인생 시뮬레이션 게임에 잘 도전하지 않았다 보니 프로젝트가 잘 진행되고 있는지 판단하기 힘들었다. 유일한 방법이 이용자 반응을 듣는 거였다”며 “지스타 출품을 통해 국내는 물론 글로벌에서도 과분한 칭찬을 많이 받았다. 더 열심히 만들어야겠다는 생각이 들 정도로 굉장히 고무가 됐다”고 개발팀 내부 분위기를 전했다.
+# '/analyze_news' 엔드포인트 정의
+@app.post("/analyze_news")
+async def analyze_news(news_data: dict):
+    try:
+        # 클라이언트 요청 데이터 확인
+        if "news_article" not in news_data:
+            raise HTTPException(status_code=400, detail="news_article field is required")
 
-뜨거운 이용자 반응에 인조이 개발에도 본격 탄력이 붙었다. 최근 크래프톤은 인조이 개발팀에 합류할 클라이언트 프로그래머 채용에 나섰다. 테크팀 20여명을 포함해 현재 60여명인 개발진을 최대 100여명 규모로 늘린다는 계획이다. 언리얼엔진5를 사용한 경험이나 게임 프로젝트 출시 경험이 있는 이가 우대 대상이다.
-
-채 셀장은 “이용자들이 시뮬레이션 게임에 바라는 점이 많다. 시뮬레이션 로직, 다양한 콘텐츠 시스템 등을 충족하기 위해 많은 분야에서 인재를 찾고 있다. 또 시뮬레이션 게임에 요구되는 여러 기술 문제를 해결하면서 최고의 렌더링 퀄리티를 만들 인재들을 채용하고 있다”고 설명했다.
-
-
-인조이 게임 화면. [ⓒ크래프톤]
-
-
-현재 개발팀은 걸음마를 떼듯 인조이에 접근하고 있다. 국내에선 해당 장르를 만들어 본 개발자가 전무한데다 활용하는 기술도 낯선 탓이다. 업계에 공유된 일부 노하우에 기대 게임을 개발하는 실정이다. 사소한 개발 과정 하나하나가 일종의 도전인 셈이다.
-
-인조이의 핵심 강점인 실사와 같은 생동감 넘치는 그래픽은 무수한 시행착오 끝에 끝에 나온 결과물이다. 엄윤섭 팀장은 “인조이에는 언리얼엔진5의 ‘루멘’ 기술 등이 적용됐다. 우리도 처음 써보는 기술이라 난관이 있었다. 기존 게임에 쓰던 최적화 기법이 효과가 없거나 오히려 방해가 됐다”며 “시행착오가 굉장히 많았는데, 결과적으로 ‘나나이트’나 루멘을 이용해 메모리는 줄이고 렌더림 품질을 높여 좋은 그래픽이라는 인상을 줄 수 있었다”고 설명했다.
-
-자연스러운 캐릭터 모션 역시 수차례의 연구를 통해 구현됐다. 채 셀장은 “이번 프로젝트 만큼 수많은 모션클립과 모션캡처를 제작한 경험이 없다”고 혀를 내둘렀다. 엄 팀장은 원하는 인재상으로 프로그래밍 지식 기반이 탄탄한 인재를 꼽으면서 “아무래도 언리얼엔진 숙련도가 중요하다. 컴퓨터 그래픽에 대한 이해도가 있으면 좋다”고 귀띔했다.
-
-최적화 전문가 또한 필요한 상황이다. 현재 인조이 개발팀은 그래픽 품질을 높이는 데서 발생할 수 있는 최적화 문제에 대비하고 있다. 김재원 팀장은 “화면에 표현되는 부분을 명확히 표현하고 나머지 부분은 간소화하는 등의 방식으로 최적화 작업을 진행 중이다. 서울을 배경으로 하는 도원 외에도 나중에는 여러 도시가 동시에 시뮬레이션 될 예정이다. 이용자의 조이가 있는 곳은 고품질로, 나머지 도시는 낮은 품질로 최적화를 진행하려 한다”고 설명했다.
-
-채 셀장은 “도시 모습이 달라지면 최적화 포인트도 달라진다. 언리얼엔진 기술 퀄리티를 최대한 유지하면서 최적화를 유지할 분들이 필요하다”고 강조했다.
-
-
-다양한 NPC와 자유로운 상호작용이 가능하도록 개발 중이다. [ⓒ크래프톤]
-
-
-인공지능(AI) 기술에 대한 전문성이 있는 인재도 환영이다. 캐릭터와 논플레이어블캐릭터(NPC)의 지속적인 상호작용이 중요한 장르 특성상 인조이에 적용되는 AI 기술 비중도 상당하다. 이용자가 캐릭터를 자신의 취향에 맞게 손쉽게 커스터마이즈하는 기능 외에도, 실제와 같은 NPC로 게임에 생동감을 더하는 작업이 진행되고 있다. 최근엔 회사 내 딥러닝 팀도 일손을 거들기 시작했다.
-
-채 셀장은 “다양한 기술을 적용하기 위해 노력하고 있다. 현재 연구 중인 기술을 다 말씀드리긴 어렵지만 NPC 행동에 영향을 주는 것도 있다. 많은 사람들이 AI를 재미있게 가지고 놀 수 있도록 하고 있다”고 말했다. 그는 “일반적인 게임 NPC는 고정된 위치에 있다. 반면 인조이는 도시에서 생활하고 있는 캐릭터를 구현한다. 시간이 되면 잠도 자고 직장에도 간다. 도시 내 직장도 실제로 구현된다. NPC의 24시간이 시뮬레이션 되는 게임을 만들고 있다”고 덧붙였다.
-
-나아가 개발팀은 AI 기술을 활용해 스트리머들이 자신의 인조이 캐릭터를 이용해 일종의 ‘버튜버’처럼 방송을 할 수 있도록 하는 방안도 기획 중이다. 채 디렉터는 “표정뿐만 아니라 모션까지, 캐릭터 자체로 활약할 수 있도록 지원하는 방법을 AI팀과 고민하고 있다”고 귀띔했다.
+        # 기사 내용 가져오기
+        news_article = news_data["news_article"]
+        
+        # 기사 요약
+        summarized_article = summarize(news_article)
+        
+        # 감정 분석
+        classifier = pipeline("sentiment-analysis", model="snunlp/KR-FinBert-SC")
+        sentiment_results = classifier(summarized_article)
+        
+        return {"summarized_article": summarized_article, "sentiment_results": sentiment_results}
+    except HTTPException as e:
+        # HTTP 예외 처리
+        raise e
+    except Exception as e:
+        # 기타 예외 처리
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-[ⓒ크래프톤]
+# 루트 엔드포인트에 대한 HTML 응답을 반환하는 함수 추가
+@app.get("/", response_class=HTMLResponse)
+async def read_root():
+    return """
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>90'Z의 주식분석! 당신도 나락을 갈 수 있다.</title>
+    <style>
+        /* CSS 초기화 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            width: 1260px;
+            height: 650px;
+            display: flex;
+        }
 
-다만 이날 개발진은 업무적 역량 못지 않게 시뮬레이션 장르에 대한 애정의 깊이가 무엇보다 중요하다고 강조했다. 해당 장르 개발 경험이 있는 개발진이 국내외를 통틀어 극소수인 만큼, 애정을 무기 삼아 몸으로 부딪혀가며 끈질기게 도전할 인재가 필요하다는 것이다.
+        .news-input {
+            width: 685px;
+            height: 650px;
+            background-color: #ffffff;
+            padding: 20px;
+        }
 
-채 셀장은 “해외에도 해당 장르 제작 경험이 있는 분이 거의 없다. 현재로선 이 장르 게임을 좋아하는 분들이 최고의 인재라고 생각한다”면서 “현재 인조이 개발진 대부분도 장르 광팬이다. 만든 창문을 통해 빛이 들어왔다며 좋아하기도 하고, 방을 새빨갛게 꾸며 뱀파이어 콘셉트로 콘텐츠를 즐겨보기도 하더라. 콘텐츠를 개발하면서 그들이 꿈꿔온 바를 실현하고 있는 느낌이다”라고 전했다.
+        .result {
+            width: 575px;
+            height: 650px;
+            color: #ffffff;
+            background-color: #ffffff;
+            padding: 20px;
+            box-sizing: border-box;
+        }
 
-그는 “열린 마음으로 소통하는 조직을 만들려고 노력 중이다. 말을 가려서 하면 좋은 의견이 안 모인다는 생각이다. 직급이 있지만 수평적인 문화를 지향하고 있다. 명확하고 투명한 커뮤니케이션을 위해 노력하고 있다”며 적극적으로 구애에 나서기도 했다.
+        .result-text {
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-family: Arial, sans-serif;
+            color : #111111; 
+            text-align: center;
+        }
 
-김 팀장은 “단순 코딩에만 집중하는 것이 아니라 게임 개발자로서 접근했으면 좋겠다. 기술을 위한 기술을 쓰는 게 아니라 목적성이 확실한 분과 함께 일하고 싶다”면서 “2~3년이 걸려도 좋으니 출시만 해달라는 코멘트에서 동기를 얻었다. 새로 오신 분들과 게임을 잘 만들어 꼭 출시해 보여드리고 싶다”는 바람을 전했다.
-"""
+        .summary {
+            width: 508px;
+            height: 25px;
+            margin-bottom: 10px;
+            
+        }
 
-app= FastAPI()
+        .summary-text {
+            width: 508px;
+            height: 185px;
+            font-family: Arial, sans-serif;
+            color : #111111; 
+            font-size : 18px
+        }
+        .summary, .result-text {
+            border: 1px solid #ccc; /* 회색 테두리 추가 */
+            padding: 10px; /* 내부 여백 추가 */
+            margin-bottom: 20px; /* 아래쪽 여백 추가 */
+            width: 535px;
+            height: 198px;
+}
 
-@app.get("/")
-def home():
-    # 긴 원본 내용 요약
-    sum_text= summarize(text)
-    corpus= summarize_corpus(text, ratio= 0.1)
-    print(sum_text)
-    # print(corpus)
+        .btn {
+            width: 250px;
+            height: 60px;
+            background-color: #007bff;
+            color: #ffffff;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: -15px;
+        }
 
+        .btn:hover {
+            background-color: #0056b3;
+        }
 
-    # 원본 내용 긍/부정 판단
-    classifier = pipeline("sentiment-analysis", model="snunlp/KR-FinBert-SC")
+        .title {
+            background-color: #007bff;
+            height: 60px;
+        }
 
-    # # 원본 내용으로 분류
-    # ori_cl = classifier(text)
+        .title h2 {
+            text-align: center;
+            padding: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
 
-    # 요약 내용으로 분류
-    sum_cl = classifier(sum_text)
+        <div class="news-input">
+            <h2 style="text-align: center;"><img src="img/logo.png" alt="90'z 로고" style="max-width: 120px;"></h2>
+            <textarea id="news-article" placeholder="분석하고자 하는 기사 내용을 입력하세요." style="width: 100%; margin-bottom: 20px; height: 477px; text-align: center; resize: none;"></textarea>
+            <div style="text-align: center;">
+            <button class="btn" onclick="analyzeNews()">결과 확인</button>
+            </div>
+        </div>
+        <div class="result">
+            <div class="result_box" style="margin-top: 28px;">
+            <div class="title">
+            <h2>분석 결과</h2>
+          </div>
+            <div class="summary">
+                <div class="summary-text" id="summary-text"></div>
+            </div>
+            <div class="title_box" style="margin-top: 35px;">
+            <div class="title">
+                <h2>결과</h2>
+            <div class="result-text" id="result-text" style="height: 125px;"></div>
+        </div>
+        </div>
+    </div>
+    </div>
+    </div>
+    <script>
+function analyzeNews() {
+    var newsArticle = document.getElementById("news-article").value;
 
-    # print(ori_cl)
-    print(sum_cl)
+    fetch('/analyze_news', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ news_article: newsArticle })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to fetch data from server');
+        }
+        return response.json();
+    })
+    .then(data => {
+        document.getElementById("summary-text").innerText = data.summarized_article;
+
+        var score = 0.00000;
+        var label = "";
+
+        for (var i = 0; i < 3; i++) {
+            if (data.sentiment_results[0][i]['label'] != 'neutral') {
+                label = data.sentiment_results[0][i]['label'];
+                console.log(label)
+                
+                
+                if (data.sentiment_results[0][i]['score'] > score) {
+                    score = data.sentiment_results[0][i]['score'];
+                    console.log(score)
+                    }
+            }
+            console.log(data.sentiment_results[0])
+        }
+        document.getElementById("result-text").innerText = label;
+           
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+    </script>
+</body>
+</html>
+    """
